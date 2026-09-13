@@ -17,7 +17,8 @@ _SUCCESS
 
 # Data
 test
-
+data
+kaggle_token.txt
 
 # VS Code
 .vscode
