@@ -113,7 +113,7 @@ The datasets are not redistributed in this repository. Users are responsible for
 
 The project report records PlantVillage as **CC BY-SA** and PlantDoc as **CC BY 4.0**. Confirm the current licence information at the original source before redistributing any data.
 
-### 3. Validate the 26 shared classes
+### Validate the 26 shared classes
 
 Run:
 
