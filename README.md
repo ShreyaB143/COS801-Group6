@@ -1,6 +1,6 @@
 # Lightweight Crop Disease Diagnosis for Low-Cost Devices
 
-COS801 Deep Learning Project (2026), Group 6
+**COS801 Deep Learning Project (2026), Group 6**
 
 This repository contains the code and supporting material for a crop disease classification project focused on three practical deployment challenges:
 
@@ -10,8 +10,29 @@ This repository contains the code and supporting material for a crop disease cla
 
 The experiments use **PlantVillage** as the laboratory domain and **PlantDoc** as the field domain. Only the 26 crop-condition classes shared by both datasets are included in the main classification task.
 
-> **Important:** The datasets and large trained-model files are not stored in this repository. Follow the setup and data instructions below before running the notebook.
+> **Important:** The main Google Drive project folder used by the Colab notebooks and helper scripts is:
+>
+> ```text
+> /content/drive/Shareddrives/COS 801 Group 6
+> ```
+>
+> This is the main project root. The datasets, split files, notebooks, helper scripts, checkpoints and outputs should be stored under this folder. Large datasets and trained-model files are not stored directly in GitHub.
 
+## Main project path
+
+After mounting Google Drive in Colab, use the following as the main project path:
+
+```python
+from pathlib import Path
+
+PROJECT_ROOT = Path("/content/drive/Shareddrives/COS 801 Group 6")
+DATA_DIR = PROJECT_ROOT / "data"
+RAW_DATA_DIR = DATA_DIR / "raw"
+OUTPUT_DIR = PROJECT_ROOT / "outputs"
+CHECKPOINT_DIR = PROJECT_ROOT / "checkpoints"
+```
+
+Using one project-root variable helps ensure that all notebooks and scripts refer to the same files.
 
 ## Main experiments
 
@@ -31,14 +52,13 @@ The project includes:
 - ONNX and TensorFlow Lite export
 - Model size and CPU inference-time measurement
 
-
 ## Reproducibility design
 
 The project uses the following controls to make results easier to reproduce:
 
 - The shared task is fixed to 26 classes that occur in both PlantVillage and PlantDoc.
 - Class indices are defined centrally in `shared_class_labels.py`.
-- PlantVillage near-duplicates are grouped before splitting to reduce leakage between train, validation and test data.
+- PlantVillage near-duplicates are grouped before splitting to reduce leakage between training, validation and test data.
 - The PlantVillage split is fixed at 70% training, 15% validation and 15% testing.
 - PlantDoc is used only as a field test set, not for training or model selection.
 - Augmentation experiments use seeds `42`, `43` and `44`.
@@ -91,34 +111,61 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-For the strongest reproducibility, also record the following in the experiment output:
+For the strongest reproducibility, also record:
 
 - Python version
 - PyTorch and torchvision versions
 - CUDA and cuDNN versions, if a GPU is used
 - GPU or CPU model
-- operating system
+- Operating system
 - Git commit hash
 
 ## Dataset setup
 
-###  Obtain the datasets
+### Obtain the datasets
 
 Download the following datasets from their official or approved distribution locations:
 
 - **PlantVillage**, colour-image version
-- **PlantDoc**, including its train and test folders
+- **PlantDoc**, including its training and test folders
 
-The datasets are not redistributed in this repository. Users are responsible for following the licences and terms of the original datasets.
+The datasets are not redistributed through GitHub. Users are responsible for following the licences and terms of the original datasets.
 
 The project report records PlantVillage as **CC BY-SA** and PlantDoc as **CC BY 4.0**. Confirm the current licence information at the original source before redistributing any data.
 
+### Expected data folders
+
+The shared helper code expects the raw data below the main project root:
+
+```text
+/content/drive/Shareddrives/COS 801 Group 6/
+└── data/
+    ├── data_split.csv
+    └── raw/
+        ├── plantvillage/
+        │   └── plantvillage dataset/
+        │       └── color/
+        └── plantdoc/
+            ├── train/
+            └── test/
+```
+
+Folder names should not be changed without also updating the paths and mappings in the code.
+
 ### Validate the 26 shared classes
 
-Run:
+Run the class-label helper script from the main project folder. Use the command that matches the location of the script.
 
-```bash
-python src/shared_class_labels.py
+If the script is in the project root:
+
+```python
+!python "/content/drive/Shareddrives/COS 801 Group 6/shared_class_labels.py"
+```
+
+If the script is inside a `src` folder:
+
+```python
+!python "/content/drive/Shareddrives/COS 801 Group 6/src/shared_class_labels.py"
 ```
 
 The script:
@@ -127,7 +174,7 @@ The script:
 - checks that all required folders exist;
 - counts images by class and domain;
 - reports excluded folders and thin classes; and
-- exits with an error if a mapped class has no images on one side.
+- exits with an error if a mapped class has no images in either domain.
 
 A successful run should end with:
 
@@ -135,38 +182,83 @@ A successful run should end with:
 Checks passed.
 ```
 
+### Diagnose data paths
+
+The supplied `diagnose_paths.py` script uses the shared-drive folder as its Colab default:
+
+```text
+/content/drive/Shareddrives/COS 801 Group 6
+```
+
+If the script is stored in the project root, run:
+
+```python
+!python "/content/drive/Shareddrives/COS 801 Group 6/diagnose_paths.py"
+```
+
+If it is stored inside `src`, run:
+
+```python
+!python "/content/drive/Shareddrives/COS 801 Group 6/src/diagnose_paths.py" \
+  "/content/drive/Shareddrives/COS 801 Group 6" \
+  "/content/drive/Shareddrives/COS 801 Group 6/data/data_split.csv"
+```
+
+The script does not rename, move or delete files. It creates:
+
+- `path_diagnosis.csv`, containing rows that could not be resolved and the reason;
+- `data_split_resolved.csv`, containing the original split and a `resolved_path` column.
+
+When `data_split_resolved.csv` is generated, use `resolved_path` in the data loader rather than manually renaming files in the shared drive.
 
 ## Running in Google Colab
 
-###  Mount Google Drive
+### 1. Mount Google Drive
 
 ```python
 from google.colab import drive
 drive.mount('/content/drive')
 ```
 
-### Move to the repository
-
-For a shared drive, adjust the path to match your own folder:
+### 2. Set the main project folder
 
 ```python
-%cd "/content/drive/Shareddrives/COS 801 Group 6/COS801-Group6"
+from pathlib import Path
+
+PROJECT_ROOT = Path("/content/drive/Shareddrives/COS 801 Group 6")
+assert PROJECT_ROOT.exists(), f"Project folder not found: {PROJECT_ROOT}"
+
+%cd "/content/drive/Shareddrives/COS 801 Group 6"
 ```
 
-###  Install dependencies
+This replaces the earlier path that added an extra `COS801-Group6` subfolder. All project code should use the shared-drive root above unless the folder structure is deliberately changed.
+
+### 3. Install dependencies
+
+If `requirements.txt` is saved in the main project folder:
 
 ```python
-!pip install -r requirements.txt
+!pip install -r "/content/drive/Shareddrives/COS 801 Group 6/requirements.txt"
 ```
 
+### 4. Run the data checks
 
-###  Run the notebook
+If both helper scripts are stored in the project root:
+
+```python
+!python "/content/drive/Shareddrives/COS 801 Group 6/shared_class_labels.py"
+!python "/content/drive/Shareddrives/COS 801 Group 6/diagnose_paths.py"
+```
+
+Adjust only the script location if the files are stored in `src`. Keep the project root unchanged.
+
+### 5. Run the notebook
 
 Open the main notebook and select:
 
 **Runtime > Run all**
 
-The notebook should be run from top to bottom in a fresh runtime. Avoid executing later sections with stale variables from an earlier session.
+Run the notebook from top to bottom in a fresh runtime. Avoid running later sections with variables left over from an earlier session.
 
 ## Pipeline order
 
@@ -215,43 +307,46 @@ The five augmentation arms are:
 - `A3`: degradation augmentation
 - `A4`: combined geometric, photometric and degradation augmentation
 
-
 ### Abstention deployment model
 
 The selected deployment model used A4 combined augmentation and 40% global magnitude pruning. It retained laboratory behaviour but remained weak under field-domain shift. It performed better than the single-run baseline on non-plant rejection, but neither model reliably rejected unseen diseases on known crops.
 
-These are validation targets, not guarantees of bit-for-bit identical results.
+These results are validation targets, not guarantees of bit-for-bit identical results across different package versions and hardware.
 
 ## Reproducing a clean run
 
 Use this checklist for a full rerun:
 
-- [ ] Clone the repository at a recorded commit.
-- [ ] Create a fresh Python or Colab environment.
+- [ ] Mount Google Drive in a fresh Colab runtime.
+- [ ] Confirm that `/content/drive/Shareddrives/COS 801 Group 6` exists.
+- [ ] Set this folder as `PROJECT_ROOT`.
+- [ ] Clone or update the GitHub repository at a recorded commit.
 - [ ] Install `requirements.txt` without unresolved dependency errors.
-- [ ] Place PlantVillage and PlantDoc in the expected folders.
-- [ ] Confirm that the fixed split file is present.
+- [ ] Confirm that PlantVillage and PlantDoc are in `data/raw/`.
+- [ ] Confirm that `data/data_split.csv` is present.
 - [ ] Run `shared_class_labels.py` and obtain `Checks passed.`
-- [ ] Run `diagnose_paths.py` and resolve missing data.
+- [ ] Run `diagnose_paths.py` and review any unresolved paths.
+- [ ] Use `data_split_resolved.csv` when resolved paths are required.
 - [ ] Confirm the expected split counts.
 - [ ] Run the notebook from the first cell in a fresh runtime.
 - [ ] Confirm the baseline parity check before compression.
 - [ ] Run seeds 42, 43 and 44 for multi-seed experiments.
-- [ ] Save metrics, checkpoints and figures to separate output folders.
+- [ ] Save metrics, checkpoints and figures under the main project root.
 - [ ] Record the environment and Git commit hash.
-- [ ] Compare the final metrics with the reference values above.
+- [ ] Compare the final metrics with the project report.
 
 ## Outputs
 
 A complete run should save, where applicable:
 
-- baseline and compressed checkpoints;
-- per-run metric files;
-- aggregated metric tables;
-- bootstrap confidence intervals;
-- calibration results;
-- per-class F1 results;
-- pruning and quantisation summaries;
-- ONNX and TensorFlow Lite models;
-- model-size and CPU-latency measurements; and
-- report figures.
+- Baseline and compressed checkpoints
+- Per-run metric files
+- Aggregated metric tables
+- Bootstrap confidence intervals
+- Calibration results
+- Per-class F1 results
+- Pruning and quantisation summaries
+- ONNX and TensorFlow Lite models
+- Model-size and CPU-latency measurements
+- Report figures
+
