@@ -102,7 +102,7 @@ For the strongest reproducibility, also record the following in the experiment o
 
 ## Dataset setup
 
-### 1. Obtain the datasets
+###  Obtain the datasets
 
 Download the following datasets from their official or approved distribution locations:
 
@@ -135,37 +135,17 @@ A successful run should end with:
 Checks passed.
 ```
 
-### 4. Diagnose unresolved paths
-
-If rows in `data_split.csv` do not match files on disk, run:
-
-```bash
-python src/diagnose_paths.py "/path/to/COS801-Group6"
-```
-
-Or specify both the project root and split file:
-
-```bash
-python src/diagnose_paths.py "/path/to/COS801-Group6" "/path/to/COS801-Group6/data/data_split.csv"
-```
-
-The script does not rename, move or delete images. It writes:
-
-- `path_diagnosis.csv`, containing unresolved rows and their reasons;
-- `data_split_resolved.csv`, containing the original split plus a `resolved_path` column.
-
-Common issues include incorrect base folders, URL-encoded names, filename case differences, Windows-incompatible characters and files extracted into the wrong folder.
 
 ## Running in Google Colab
 
-### 1. Mount Google Drive
+###  Mount Google Drive
 
 ```python
 from google.colab import drive
 drive.mount('/content/drive')
 ```
 
-### 2. Move to the repository
+### Move to the repository
 
 For a shared drive, adjust the path to match your own folder:
 
@@ -173,22 +153,14 @@ For a shared drive, adjust the path to match your own folder:
 %cd "/content/drive/Shareddrives/COS 801 Group 6/COS801-Group6"
 ```
 
-### 3. Install dependencies
+###  Install dependencies
 
 ```python
 !pip install -r requirements.txt
 ```
 
-### 4. Check the data before training
 
-```python
-!python src/shared_class_labels.py
-!python src/diagnose_paths.py "/content/drive/Shareddrives/COS 801 Group 6/COS801-Group6"
-```
-
-If `diagnose_paths.py` generates `data_split_resolved.csv`, use its `resolved_path` column in the data loader rather than renaming shared-drive files.
-
-### 5. Run the notebook
+###  Run the notebook
 
 Open the main notebook and select:
 
